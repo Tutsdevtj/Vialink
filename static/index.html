@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f7fc">
+  <title>ViaLink · Baixe vídeos por link</title>
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="ViaLink, início">
+        <img src="/static/icon.svg" width="36" height="36" alt="">
+        <span>ViaLink</span>
+      </a>
+      <span class="local-note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+        Processamento local
+      </span>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="intro">
+      <h1>Baixe vídeos <span>por link.</span></h1>
+      <p>Cole a URL para salvar o vídeo em MP4 ou baixar só o áudio em MP3.</p>
+    </div>
+
+    <form id="lookup" class="panel lookup" novalidate>
+      <label for="url">URL do vídeo</label>
+      <div class="lookup-row">
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5a4 4 0 0 0 5.7.3l3.2-3.2a4 4 0 0 0-5.6-5.7l-1.8 1.8m2.5 3.8a4 4 0 0 0-5.7-.3l-3.2 3.2a4 4 0 0 0 5.6 5.7l1.8-1.8"/></svg>
+          <input id="url" name="url" type="url" inputmode="url" autocomplete="off" autocapitalize="off"
+            spellcheck="false" maxlength="4096" placeholder="https://…" aria-describedby="url-hint lookup-error" required>
+        </div>
+        <button class="button primary" type="submit" id="lookup-button">
+          <span id="lookup-label">Download</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+        </button>
+      </div>
+      <p id="url-hint" class="hint">Use um link público de um vídeo individual.</p>
+      <p id="lookup-error" class="error" role="alert" hidden></p>
+    </form>
+
+    <div class="sr-only" role="status" id="lookup-status"></div>
+    <section class="result-area" id="result-area" aria-label="Resultado da consulta">
+      <div class="empty" id="empty">
+        <div class="empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3V9z"/></svg>
+        </div>
+        <p class="empty-title">Seu vídeo aparece aqui</p>
+        <p class="hint">Consulte um link para ver a prévia e as opções de download.</p>
+      </div>
+
+      <div class="panel skeleton" id="skeleton" hidden>
+        <div class="skeleton-row" aria-hidden="true">
+          <div class="skeleton-media"></div>
+          <div class="skeleton-text"><div></div><div></div><div></div></div>
+        </div>
+        <p class="hint">Consultando o vídeo…</p>
+      </div>
+
+      <article class="panel video-card" id="result" aria-labelledby="video-title" hidden>
+        <div class="video-summary">
+          <div class="media" id="media">
+            <div class="media-placeholder" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3V9z"/></svg>
+            </div>
+            <img id="thumbnail" alt="" hidden>
+            <video id="player" controls playsinline preload="none" aria-label="Prévia do vídeo" hidden></video>
+          </div>
+          <div class="summary-detail">
+            <h2 id="video-title"></h2>
+            <p class="duration" id="duration" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+              <span id="duration-text"></span>
+            </p>
+            <a class="origin" id="origin" href="#" target="_blank" rel="noopener noreferrer">
+              Assistir na origem
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9m7-2v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <p class="notice" id="no-options" hidden>Este vídeo não tem um formato disponível para download dentro dos limites da aplicação.</p>
+        <form id="download-form" novalidate hidden>
+          <div class="download-options">
+            <div class="select-wrap">
+              <label for="option">Formato e qualidade</label>
+              <select id="option" name="option" aria-describedby="download-error"></select>
+            </div>
+            <button class="button primary" id="prepare-button" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-4-4 4 4 4-4M5 16v3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3"/></svg>
+              <span id="prepare-label">Baixar arquivo</span>
+            </button>
+          </div>
+          <p id="download-error" class="error" role="alert" hidden></p>
+        </form>
+
+        <div id="progress-panel" class="processing" hidden>
+          <div class="progress-heading"><p id="phase"></p><span id="percent" aria-hidden="true"></span></div>
+          <progress id="progress" max="100" aria-label="Progresso da preparação"></progress>
+        </div>
+        <div class="sr-only" role="status" id="download-status"></div>
+
+        <div id="ready" class="ready" hidden>
+          <div class="ready-copy">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg>
+            <div><p>Arquivo pronto</p><span id="ready-details" class="hint"></span></div>
+          </div>
+          <a id="file" class="button secondary" href="#" download>Salvar arquivo</a>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
